@@ -1,0 +1,26 @@
+[Unit]
+Description=Server OS API (Fastify, unprivileged)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=serveros
+Group=serveros
+Environment=DB_PATH=/var/lib/serveros/db.sqlite
+Environment=PORT=3001
+Environment=HOST=127.0.0.1
+Environment=HELPER_SOCKET=/run/serveros/helper.sock
+ExecStart=/usr/bin/node /opt/server-os/backend-dist/index.js
+Restart=always
+RestartSec=3
+# Hardening (unprivileged API: no new privileges, strict read-only root fs
+# except the state dir; docker socket access comes from group membership).
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/serveros
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

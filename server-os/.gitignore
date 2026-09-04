@@ -1,0 +1,12 @@
+node_modules/
+.svelte-kit/
+frontend/build/
+backend/dist/
+backend/data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+.env
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+# Allow the control node to query data-node inventory over SSH.
+# Install on the DESKTOP as /etc/sudoers.d/serveros (mode 0440, via visudo):
+#
+#   serveros-control ALL=(root) NOPASSWD: /bin/lsblk *, /bin/blkid *, /bin/df *,
+#       /bin/findmnt *, /usr/sbin/smartctl *, /usr/sbin/exportfs *,
+#       /usr/bin/showmount *, /bin/systemctl status nfs-server
+#
+# The SSH key itself is restricted in ~/.ssh/authorized_keys:
+#
+#   from="LAPTOP_IP",no-agent-forwarding,no-X11-forwarding,command="/bin/false"
+#   ssh-ed25519 AAAA... serveros-control
+#
+# Phase 1 uses this key for read-only inventory only. No remote command
+# execution beyond the allowlisted binaries above is permitted.

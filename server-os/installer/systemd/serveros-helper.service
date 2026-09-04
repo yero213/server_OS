@@ -1,0 +1,21 @@
+[Unit]
+Description=Server OS privileged helper (root, read-only Phase 1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment=HELPER_SOCKET=/run/serveros/helper.sock
+ExecStart=/usr/bin/node /opt/server-os/backend-dist/helper.js
+Restart=always
+RestartSec=3
+# Phase 1 exposes GET-only discovery; socket perms (0600) are set by the
+# process itself after bind. UMask as defence in depth.
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

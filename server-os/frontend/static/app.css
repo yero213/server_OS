@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0f16;
+  --panel: #131926;
+  --panel-2: #1a2233;
+  --text: #e8edf5;
+  --muted: #9aa6bb;
+  --accent: #38e1c6;
+  --warn: #f5b83d;
+  --bad: #f26d6d;
+  --ok: #4ade80;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% -10%, #16233a 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
+header.top { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.logo {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, #1c2b47, #0e3b38);
+  border: 1px solid #2a3a55;
+  display: grid; place-items: center; font-size: 22px;
+}
+h1 { font-size: 22px; margin: 0; }
+.sub { color: var(--muted); margin: 2px 0 18px; font-size: 14px; }
+.badge {
+  display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid #2a3a55; background: var(--panel-2); color: var(--accent);
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.card {
+  background: linear-gradient(180deg, var(--panel), #101623);
+  border: 1px solid #232f47; border-radius: var(--radius); padding: 16px;
+}
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+.big { font-size: 26px; font-weight: 650; }
+.row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+.row span:first-child { color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+.error {
+  border: 1px solid #5a2b2b; background: #221414; color: #f3b1b1;
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; font-size: 14px;
+}
+footer { color: var(--muted); font-size: 12px; margin-top: 22px; }
+code { background: #0e1420; padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+@media (max-width: 560px) { main { padding: 18px 12px 40px; } }

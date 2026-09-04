@@ -1,0 +1,28 @@
+{
+  "name": "@serveros/backend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build --workspace @serveros/contracts && tsx watch src/index.ts",
+    "helper": "npm run build --workspace @serveros/contracts && tsx src/helper.ts",
+    "build": "npm run build --workspace @serveros/contracts && tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "start:helper": "node dist/helper.js",
+    "test": "npm run build --workspace @serveros/contracts && tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@serveros/contracts": "0.1.0",
+    "drizzle-orm": "^0.44.2",
+    "fastify": "^5.2.0",
+    "pino": "^9.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,19 @@
+# Server OS — Caddy reverse proxy (control node).
+# HTTPS via internal CA (works fully offline, no ACME/DNS).
+# Clients must trust the CA once: see docs/CADDY_CA_TRUST.md.
+{
+	admin 127.0.0.1:2019
+}
+
+https://server.local, https://*.server.local {
+	tls internal
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		root * /srv/serveros/frontend
+		file_server
+	}
+}

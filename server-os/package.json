@@ -1,0 +1,19 @@
+{
+  "name": "server-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Custom home-server OS on Ubuntu Server (Phase 1: bootstrap)",
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
