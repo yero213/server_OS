@@ -33,18 +33,20 @@ else
   warn "not root: blkid/ufw/socket-owner depth reduced (re-run with sudo for full depth)"
 fi
 
-section "1. Operating system"
+section "1. Operating system (Scenario A: Ubuntu Server 24.04 only)"
 if [ -f /etc/os-release ]; then
   # shellcheck disable=SC1091
   . /etc/os-release
   info "os: ${NAME:-unknown} ${VERSION_ID:-?} (id=${ID:-?})"
-  if [ "${ID:-}" = "ubuntu" ]; then
-    pass "Ubuntu detected (${VERSION_ID:-unknown})"
+  if [ "${ID:-}" = "ubuntu" ] && [ "${VERSION_ID:-}" = "24.04" ]; then
+    pass "Ubuntu Server 24.04 detected"
+  elif [ "${ID:-}" = "ubuntu" ]; then
+    fail "Ubuntu ${VERSION_ID:-?} detected; ONLY clean 24.04 LTS is supported (see docs/UBUNTU_INSTALL.md)"
   else
-    warn "not Ubuntu (id=${ID:-?}); bootstrap targets Ubuntu Server"
+    fail "not Ubuntu (id=${ID:-?}); ONLY Ubuntu Server 24.04 is supported"
   fi
 else
-  fail "/etc/os-release missing; cannot verify Ubuntu"
+  fail "/etc/os-release missing; cannot verify Ubuntu 24.04"
 fi
 info "kernel: $(uname -r)"
 ARCH="$(uname -m)"

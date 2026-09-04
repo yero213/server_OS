@@ -1,6 +1,9 @@
 # Server OS — Phase 1 / Bootstrap (v0.1.0)
 
 Custom home-server platform on minimal Ubuntu Server.
+Scenario A (MVP): clean Ubuntu Server 24.04 LTS minimal, x86_64 on the
+Dell Inspiron 3542 Control/Application Node. This is the ONLY supported
+control-node platform for the MVP. Umbrel is NOT reinstalled.
 Single control node (laptop) + headless data node (desktop, NFS later).
 
 **Phase 1 scope:** API foundation, read-only storage discovery, static
@@ -49,9 +52,13 @@ Frontend build (static, `frontend/build/`):
 & "$env:ProgramFiles\nodejs\npm.cmd" --workspace frontend run build
 ```
 
-## Production install (Ubuntu Server 24.04 LTS, on the laptop ONLY)
+## Production install (clean Ubuntu Server 24.04 LTS, on the laptop ONLY)
+
+Clean-install guide: `docs/UBUNTU_INSTALL.md` (read FIRST).
 
 ```bash
+bash installer/preflight-control.sh | tee /tmp/preflight.txt
+# only when preflight has zero FAIL:
 sudo bash installer/bootstrap-control.sh
 curl -k https://server.local/api/v1/health
 ```

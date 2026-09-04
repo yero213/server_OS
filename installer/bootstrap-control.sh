@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Server OS — Phase 1 control-node bootstrap (laptop).
+# Server OS — Phase 1 control-node bootstrap (Scenario A).
 # Idempotent: safe to re-run; existing config is never destroyed.
-# Target: minimal Ubuntu Server 24.04 LTS x86_64. Must run as root.
+# ONLY supported target: clean minimal Ubuntu Server 24.04 LTS, x86_64
+# (Dell Inspiron 3542 Control/Application Node). Must run as root.
+# Umbrel is NOT installed by this script and is NOT supported for the MVP.
 #
 # Scope: users, dirs, Node 22, Docker Engine, Caddy, systemd units,
 # firewall, frontend deploy. No App Store, no Immich, no remote mounts.
@@ -21,10 +23,29 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 if [ ! -f /etc/os-release ]; then
-  echo "Refusing: /etc/os-release missing (not Ubuntu Server?)" >&2
+  echo "Refusing: /etc/os-release missing (not Ubuntu Server 24.04?)" >&2
   exit 1
 fi
-log "OS: $(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d= -f2-)"
+# Scenario A gate: ONLY Ubuntu Server 24.04 LTS is supported for the MVP.
+# shellcheck disable=SC1091
+. /etc/os-release
+log "OS: ${PRETTY_NAME:-unknown} (id=${ID:-?} version=${VERSION_ID:-?} arch=$(uname -m))"
+if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_ID:-}" != "24.04" ]; then
+  echo "Refusing: ONLY clean Ubuntu Server 24.04 LTS (x86_64) is supported." >&2
+  echo "Detected: id=${ID:-?} version=${VERSION_ID:-?}. See docs/UBUNTU_INSTALL.md." >&2
+  exit 1
+fi
+if [ "$(uname -m)" != "x86_64" ]; then
+  echo "Refusing: ONLY x86_64 is supported for the MVP (detected: $(uname -m))." >&2
+  exit 1
+fi
+if command -v dpkg >/dev/null 2>&1; then
+  if [ "$(dpkg --print-architecture)" != "amd64" ]; then
+    echo "Refusing: dpkg architecture is not amd64 (detected: $(dpkg --print-architecture))." >&2
+    exit 1
+  fi
+fi
+log "Platform gate passed: Ubuntu Server 24.04 LTS x86_64"
 
 # 1. Service user (idempotent).
 if id -u "$SERVICE_USER" >/dev/null 2>&1; then
@@ -62,6 +83,8 @@ else
 fi
 
 # 4. Docker Engine via official Docker apt repo (skip when present).
+# Uses download.docker.com for Ubuntu ($VERSION_CODENAME=noble on 24.04).
+# Installs the engine + compose plugin ONLY; no app containers are deployed.
 if have docker; then
   log "docker present ($(docker --version 2>/dev/null || echo unknown)), skipping repo setup"
 else
@@ -82,6 +105,9 @@ fi
 usermod -aG docker "$SERVICE_USER" || true
 
 # 5. Caddy via official Cloudsmith repo (skip when present).
+# NOTE: the filenames/keys below containing "debian" are Caddy upstream
+# naming (per Caddy docs for Ubuntu) — NOT a Debian-OS assumption.
+# Target remains Ubuntu Server 24.04 (noble) only.
 if have caddy; then
   log "caddy present, skipping repo setup"
 else

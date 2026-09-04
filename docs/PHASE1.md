@@ -1,15 +1,21 @@
 # Phase 1 — Ubuntu bootstrap: install & verify
 
-## Target
+## Target (Scenario A, ONLY supported MVP platform)
 
-Laptop (control node), minimal Ubuntu Server 24.04 LTS x86_64.
+Laptop (control node), clean minimal Ubuntu Server 24.04 LTS x86_64
+(Dell Inspiron 3542). No other OS/version/arch is supported for the MVP.
+Umbrel is NOT reinstalled. Clean-install guide: `docs/UBUNTU_INSTALL.md`.
 
-## Install (on the laptop, as a sudo-capable user)
+`bootstrap-control.sh` refuses to run on anything but Ubuntu 24.04 x86_64.
+
+## Install (on the laptop, as a sudo-capable user, AFTER preflight is clean)
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
 git clone <repo-url> /opt/server-os
-cd /opt/server-os/server-os   # monorepo root inside the clone
+cd /opt/server-os   # monorepo root (contains backend/, installer/, docs/)
+bash installer/preflight-control.sh | tee /tmp/preflight.txt
+# only with zero FAIL:
 sudo bash installer/bootstrap-control.sh
 ```
 

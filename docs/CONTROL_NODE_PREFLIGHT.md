@@ -3,6 +3,13 @@
 Read-only validation of the Dell Inspiron 3542 (control/application node)
 **before** `bootstrap-control.sh` is ever executed.
 
+Scenario A: the control node is a **clean minimal Ubuntu Server 24.04 LTS
+(x86_64)** install. That is the ONLY supported MVP platform. Umbrel is NOT
+reinstalled and must NOT be present — on a clean install §14 reports
+“no umbrel remnants detected” (PASS). Any §14 WARN means the machine is
+not a clean install; resolve it before bootstrap. Full clean-install
+guide: `docs/UBUNTU_INSTALL.md`.
+
 ## Run (on the laptop, from the repo root, no sudo required)
 
 ```bash
@@ -25,7 +32,7 @@ bash installer/preflight-control.sh | tee /tmp/preflight.txt
 | § | Check (tools used) | PASS | WARN | FAIL |
 |---|---|---|---|---|
 | 0 | Audit mode (`id`) | — (info) | not root: reduced depth for blkid/ufw/socket owners | — |
-| 1 | OS (`/etc/os-release`, `uname`, `hostname`) | Ubuntu + `x86_64` | non-Ubuntu ID (bootstrap targets Ubuntu) | no os-release, or arch ≠ x86_64 |
+| 1 | OS Scenario A (`/etc/os-release`, `uname`, `hostname`) | Ubuntu Server **24.04** + `x86_64` | — | no os-release, non-Ubuntu ID, Ubuntu ≠ 24.04, or arch ≠ x86_64 (bootstrap refuses) |
 | 2 | CPU/RAM (`nproc`, `/proc/cpuinfo`, `/proc/meminfo`) | RAM ≥ ~7 GB | below 7 GB (8 GB expected) | — |
 | 3 | Free space (`df -B1 /`) | ≥ 5 GB free | 2–5 GB (tight for images) | < 2 GB, do not bootstrap |
 | 4 | Attachments (`findmnt`, fallback `/proc/mounts`) | table readable | findmnt missing, fallback used | — |
