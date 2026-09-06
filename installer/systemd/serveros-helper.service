@@ -6,12 +6,15 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-Group=root
+# Group serveros (not root): the helper socket is created root:serveros
+# 0660 so the unprivileged API service user can dial it. root:root 0600
+# would lock the API out (helper then reports healthy, API reports down).
+Group=serveros
 Environment=HELPER_SOCKET=/run/serveros/helper.sock
 ExecStart=/usr/bin/node /opt/server-os/backend-dist/helper.js
 Restart=always
 RestartSec=3
-# Phase 1 exposes GET-only discovery; socket perms (0600) are set by the
+# Phase 1 exposes GET-only discovery; socket perms (0660) are set by the
 # process itself after bind. UMask as defence in depth.
 UMask=0077
 NoNewPrivileges=true

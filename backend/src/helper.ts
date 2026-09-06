@@ -5,11 +5,14 @@ import { execFileAllowlisted } from "./lib/execFile.js";
 import { logger } from "./logger.js";
 
 /**
- * serveros-helper — root-only companion service (Phase 1: READ-ONLY).
- * Listens on a root-owned Unix socket (0600). Exposes GET endpoints only;
- * any other method → 405. No mount/format/partition code exists here.
+ * serveros-helper — root-owned companion service (Phase 1: READ-ONLY).
+ * Listens on a root:serveros Unix socket (0660) so the unprivileged API
+ * service user can dial it. Exposes GET endpoints only; any other
+ * method → 405. No mount/format/partition code exists here.
  *
- * Production: systemd socket /run/serveros/helper.sock (User=root).
+ * Production: systemd socket /run/serveros/helper.sock
+ * (User=root, Group=serveros). A root:root 0600 socket would silently
+ * lock the API out (EACCES), so 0660 + group is load-bearing.
  * Dev/test: HELPER_PORT=3999 fallback on 127.0.0.1 (still read-only GET).
  */
 
@@ -88,8 +91,10 @@ if (process.platform === "linux" && !PORT) {
     /* fresh start */
   }
   server.listen(SOCKET, () => {
-    chmodSync(SOCKET, 0o600);
-    logger.info({ socket: SOCKET }, "serveros-helper listening (root, read-only)");
+    // 0660 root:serveros (unit sets Group=serveros): API user can dial,
+    // anyone else cannot. See unit file — 0600 would break health checks.
+    chmodSync(SOCKET, 0o660);
+    logger.info({ socket: SOCKET }, "serveros-helper listening (root:serveros, read-only)");
   });
 } else {
   const port = PORT || 3999;

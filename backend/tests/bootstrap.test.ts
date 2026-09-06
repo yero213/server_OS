@@ -96,6 +96,21 @@ test("bootstrap creates serveros user, units, firewall and deployments", () => {
     caddyfile.includes("tls internal") && caddyfile.includes("127.0.0.1:3001"),
     "expected internal TLS + loopback API proxy",
   );
+  // Helper socket must be dialable by the API service user: root:serveros
+  // 0660. A root:root 0600 socket locks the API out (EACCES) while the
+  // helper itself reports healthy — exactly the Dell false-negative.
+  assert.ok(
+    helperUnit.includes("Group=serveros"),
+    "expected helper unit to run with Group=serveros",
+  );
+  const helperSrc = readFileSync(
+    join(installer, "..", "backend", "src", "helper.ts"),
+    "utf8",
+  );
+  assert.ok(
+    helperSrc.includes("0o660"),
+    "expected helper socket mode 0660 (never root-only 0600)",
+  );
   for (const unit of [apiUnit, helperUnit]) {
     assert.ok(unit.includes("WantedBy=multi-user.target"), "expected boot enablement");
     assert.ok(unit.includes("Restart=always"), "expected restart policy");
