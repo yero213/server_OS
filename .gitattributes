@@ -1,0 +1,5 @@
+# Line-ending normalization: shell scripts, systemd units and the
+# Caddyfile template MUST use LF so they run on Ubuntu (CRLF breaks bash).
+installer/*.sh text eol=lf
+installer/systemd/*.service text eol=lf
+installer/caddy/Caddyfile.tmpl text eol=lf
