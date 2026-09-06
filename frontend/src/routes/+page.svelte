@@ -36,9 +36,20 @@ function applyTheme(t) {
   }
 }
 
+function memUsed() {
+  if (!sysinfo) return 0;
+  return Math.max(0, sysinfo.memTotalBytes - sysinfo.memFreeBytes);
+}
+
+function memPct() {
+  if (!sysinfo?.memTotalBytes) return 0;
+  return Math.min(100, Math.round((memUsed() / sysinfo.memTotalBytes) * 100));
+}
+
 onMount(async () => {
   try {
-    theme = localStorage.getItem("serveros-theme") || "light";
+    const saved = localStorage.getItem("serveros-theme");
+    if (saved === "dark" || saved === "light") theme = saved;
   } catch {
     theme = "light";
   }
@@ -167,8 +178,23 @@ async function logout() {
               {/if}
             </div>
             <div class="row"><span>Model</span><span>{sysinfo.cpuModel}</span></div>
-            <div class="row"><span>RAM</span><span>{fmtBytes(sysinfo.memTotalBytes - sysinfo.memFreeBytes)} / {fmtBytes(sysinfo.memTotalBytes)}</span></div>
-            <div class="row"><span>Load (1m)</span><span>{sysinfo.loadAvg1}</span></div>
+            <div class="donut-row">
+              <svg class="donut" width="76" height="76" viewBox="0 0 76 76" role="img" aria-label="Memory usage {memPct()}%">
+                <circle cx="38" cy="38" r="32" fill="none" stroke="var(--border)" stroke-width="10" />
+                <circle
+                  cx="38" cy="38" r="32" fill="none"
+                  stroke={memPct() > 85 ? "var(--bad)" : "var(--accent)"}
+                  stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="{(memPct() * 2 * Math.PI * 32) / 100} {2 * Math.PI * 32}"
+                  transform="rotate(-90 38 38)" />
+                <text x="38" y="36" text-anchor="middle" class="pct">{memPct()}%</text>
+                <text x="38" y="48" text-anchor="middle" class="lbl">RAM used</text>
+              </svg>
+              <div>
+                <div class="row"><span>RAM</span><span>{fmtBytes(memUsed())} / {fmtBytes(sysinfo.memTotalBytes)}</span></div>
+                <div class="row"><span>Load (1m)</span><span>{sysinfo.loadAvg1}</span></div>
+              </div>
+            </div>
           {:else}
             <div class="hero"><div class="big warn">No data</div><span class="pill warn">● Unknown</span></div>
           {/if}
@@ -195,6 +221,7 @@ async function logout() {
     <footer>
       Phase 1 bootstrap — read-only monitoring. No App Store, no Immich, no storage mutations.
       API contract: <code>GET /api/v1/health</code>
+      <span class="safety">Safety: destructive storage operations are disabled in this build (HTTP 501).</span>
     </footer>
   </div>
 </div>

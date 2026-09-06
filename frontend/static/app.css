@@ -200,6 +200,13 @@ h1 { font-size: 21px; margin: 0; letter-spacing: -0.01em; }
 .chip.pink { background: var(--pink-soft); }
 .chip.green { background: var(--ok-soft); }
 .hero { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+/* RAM donut (pure SVG, real memTotal/memFree data) + safety footer line. */
+.donut-row { display: flex; align-items: center; gap: 16px; margin: 6px 0 4px; }
+.donut-row > div { flex: 1; min-width: 0; }
+.donut { flex: none; }
+.donut .pct { font-size: 15px; font-weight: 750; fill: var(--text); }
+.donut .lbl { font-size: 8.5px; fill: var(--muted); }
+footer .safety { display: inline-block; margin-top: 6px; }
 .big { font-size: 30px; font-weight: 750; letter-spacing: -0.02em; }
 .row {
   display: flex; justify-content: space-between; gap: 12px;

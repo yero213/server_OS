@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="%sveltekit.assets%/app.css" />
     <script>
+      /* Pre-hydration theme (prerender-safe): only honour known values. */
       try {
-        document.documentElement.dataset.theme = localStorage.getItem("serveros-theme") || "light";
-      } catch (e) {
-        document.documentElement.dataset.theme = "light";
-      }
+        var t = localStorage.getItem("serveros-theme");
+        if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+      } catch (e) {}
     </script>
     %sveltekit.head%
   </head>
