@@ -1,7 +1,7 @@
 import { cpus, freemem, loadavg, totalmem, uptime } from "node:os";
 import type { FastifyInstance } from "fastify";
 import { MVP_DISABLED_STORAGE_OPS } from "@serveros/contracts";
-import { requirePerm } from "../plugins/authStub.js";
+import { requirePerm } from "../plugins/session.js";
 import { getStorageOverview } from "../lib/storage.js";
 
 /** Read-only storage + system routes. All mutations return 501 in Phase 1. */

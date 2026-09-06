@@ -1,12 +1,13 @@
 import Fastify from "fastify";
 import { config } from "./config.js";
-import { logger } from "./logger.js";
 import { initDb, type DbHandle } from "./db.js";
 import { registerErrorHandling } from "./plugins/errors.js";
-import { registerAuthStub } from "./plugins/authStub.js";
+import { registerSessionAuth } from "./plugins/session.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerStorageRoutes } from "./routes/storage.js";
 import { registerAdminRoutes } from "./routes/admin.js";
+import { registerAuthRoutes } from "./routes/auth.js";
+import { makeAuditLogger } from "./lib/audit.js";
 
 export interface BuiltApp {
   app: ReturnType<typeof Fastify>;
@@ -14,16 +15,26 @@ export interface BuiltApp {
 }
 
 export async function buildApp(overrides: Partial<typeof config> = {}): Promise<BuiltApp> {
-  // Fastify 5 accepts logger *options* (not an instance); request logs and
-  // the shared pino logger use the same level for consistent output.
-  const app = Fastify({ logger: { level: overrides.logLevel ?? config.logLevel } });
+  const app = Fastify({
+    logger: { level: overrides.logLevel ?? config.logLevel },
+    // API is loopback-only behind Caddy; trust its X-Forwarded-For so
+    // per-client rate limiting doesn't bucket everyone as 127.0.0.1.
+    trustProxy: true,
+  });
   const db = initDb(overrides.dbPath ?? config.dbPath);
+  const audit = makeAuditLogger(db);
 
   await registerErrorHandling(app);
-  await registerAuthStub(app, {
+  await registerSessionAuth(app, {
+    db,
     allowRoleHeader: overrides.allowRoleHeader ?? config.allowRoleHeader,
   });
   await registerHealthRoutes(app, { db });
+  await registerAuthRoutes(app, {
+    db,
+    cookieSecure: overrides.cookieSecure ?? config.cookieSecure,
+    audit,
+  });
   await registerStorageRoutes(app);
   await registerAdminRoutes(app);
 

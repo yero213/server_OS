@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { requirePerm } from "../plugins/authStub.js";
+import { requirePerm } from "../plugins/session.js";
 
 /**
  * Proves the permission middleware is wired end-to-end.

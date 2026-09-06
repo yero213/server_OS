@@ -179,3 +179,84 @@ export declare const ApiError: z.ZodObject<{
     error: string;
 }>;
 export type ApiError = z.infer<typeof ApiError>;
+/** Setup / login / session contracts (Phase 2). */
+export declare const SetupStatusResponse: z.ZodObject<{
+    needsSetup: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    needsSetup: boolean;
+}, {
+    needsSetup: boolean;
+}>;
+export type SetupStatusResponse = z.infer<typeof SetupStatusResponse>;
+export declare const SetupRequest: z.ZodObject<{
+    setupToken: z.ZodString;
+    username: z.ZodString;
+    password: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    setupToken: string;
+    username: string;
+    password: string;
+}, {
+    setupToken: string;
+    username: string;
+    password: string;
+}>;
+export type SetupRequest = z.infer<typeof SetupRequest>;
+export declare const LoginRequest: z.ZodObject<{
+    username: z.ZodString;
+    password: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    username: string;
+    password: string;
+}, {
+    username: string;
+    password: string;
+}>;
+export type LoginRequest = z.infer<typeof LoginRequest>;
+export declare const SessionUserView: z.ZodObject<{
+    id: z.ZodNumber;
+    username: z.ZodString;
+    role: z.ZodEnum<["admin", "user", "viewer"]>;
+}, "strip", z.ZodTypeAny, {
+    username: string;
+    id: number;
+    role: "admin" | "user" | "viewer";
+}, {
+    username: string;
+    id: number;
+    role: "admin" | "user" | "viewer";
+}>;
+export type SessionUserView = z.infer<typeof SessionUserView>;
+export declare const AuthMeResponse: z.ZodObject<{
+    authenticated: z.ZodBoolean;
+    user: z.ZodNullable<z.ZodObject<{
+        id: z.ZodNumber;
+        username: z.ZodString;
+        role: z.ZodEnum<["admin", "user", "viewer"]>;
+    }, "strip", z.ZodTypeAny, {
+        username: string;
+        id: number;
+        role: "admin" | "user" | "viewer";
+    }, {
+        username: string;
+        id: number;
+        role: "admin" | "user" | "viewer";
+    }>>;
+}, "strip", z.ZodTypeAny, {
+    user: {
+        username: string;
+        id: number;
+        role: "admin" | "user" | "viewer";
+    } | null;
+    authenticated: boolean;
+}, {
+    user: {
+        username: string;
+        id: number;
+        role: "admin" | "user" | "viewer";
+    } | null;
+    authenticated: boolean;
+}>;
+export type AuthMeResponse = z.infer<typeof AuthMeResponse>;
+/** Name of the opaque session cookie. Never a JWT (approved arch §12). */
+export declare const SESSION_COOKIE_NAME: "serveros_session";

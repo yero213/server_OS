@@ -22,4 +22,10 @@ export const config = {
   logLevel: process.env.LOG_LEVEL ?? "info",
   /** Dev/test only: honour x-serveros-role header. OFF in production. */
   allowRoleHeader: process.env.ALLOW_ROLE_HEADER === "1",
+  /**
+   * Session cookie `Secure` attribute. ONLY set COOKIE_INSECURE_DEV=1 for
+   * local http:// dev without Caddy TLS. NEVER set in production — the
+   * systemd unit does not set it, so prod always gets a Secure cookie.
+   */
+  cookieSecure: process.env.COOKIE_INSECURE_DEV === "1" ? false : true,
 };

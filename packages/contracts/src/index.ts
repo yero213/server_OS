@@ -110,3 +110,36 @@ export const ApiError = z.object({
   message: z.string(),
 });
 export type ApiError = z.infer<typeof ApiError>;
+
+/** Setup / login / session contracts (Phase 2). */
+export const SetupStatusResponse = z.object({ needsSetup: z.boolean() });
+export type SetupStatusResponse = z.infer<typeof SetupStatusResponse>;
+
+export const SetupRequest = z.object({
+  setupToken: z.string().min(16),
+  username: z.string().min(3).max(64).regex(/^[a-zA-Z0-9_.-]+$/),
+  password: z.string().min(12).max(256),
+});
+export type SetupRequest = z.infer<typeof SetupRequest>;
+
+export const LoginRequest = z.object({
+  username: z.string().min(1).max(64),
+  password: z.string().min(1).max(256),
+});
+export type LoginRequest = z.infer<typeof LoginRequest>;
+
+export const SessionUserView = z.object({
+  id: z.number(),
+  username: z.string(),
+  role: z.enum(["admin", "user", "viewer"]),
+});
+export type SessionUserView = z.infer<typeof SessionUserView>;
+
+export const AuthMeResponse = z.object({
+  authenticated: z.boolean(),
+  user: SessionUserView.nullable(),
+});
+export type AuthMeResponse = z.infer<typeof AuthMeResponse>;
+
+/** Name of the opaque session cookie. Never a JWT (approved arch §12). */
+export const SESSION_COOKIE_NAME = "serveros_session" as const;
