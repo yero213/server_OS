@@ -14,6 +14,10 @@ Environment=HELPER_SOCKET=/run/serveros/helper.sock
 ExecStart=/usr/bin/node /opt/server-os/backend-dist/helper.js
 Restart=always
 RestartSec=3
+# /run is tmpfs: without this the socket dir vanishes on reboot and the
+# helper crash-loops on ENOENT at boot (API then reports helper down).
+RuntimeDirectory=serveros
+RuntimeDirectoryMode=0755
 # Phase 1 exposes GET-only discovery; socket perms (0660) are set by the
 # process itself after bind. UMask as defence in depth.
 UMask=0077

@@ -111,6 +111,12 @@ test("bootstrap creates serveros user, units, firewall and deployments", () => {
     helperSrc.includes("0o660"),
     "expected helper socket mode 0660 (never root-only 0600)",
   );
+  // /run is tmpfs: without RuntimeDirectory the socket dir is gone after
+  // reboot and the helper crash-loops (Dell post-reboot false-negative).
+  assert.ok(
+    helperUnit.includes("RuntimeDirectory=serveros"),
+    "expected helper runtime dir for socket survival across reboot",
+  );
   for (const unit of [apiUnit, helperUnit]) {
     assert.ok(unit.includes("WantedBy=multi-user.target"), "expected boot enablement");
     assert.ok(unit.includes("Restart=always"), "expected restart policy");
