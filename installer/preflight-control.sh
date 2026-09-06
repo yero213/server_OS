@@ -33,20 +33,20 @@ else
   warn "not root: blkid/ufw/socket-owner depth reduced (re-run with sudo for full depth)"
 fi
 
-section "1. Operating system (Scenario A: Ubuntu Server 24.04 only)"
+section "1. Operating system (Scenario A: Ubuntu Server 26.04 only)"
 if [ -f /etc/os-release ]; then
   # shellcheck disable=SC1091
   . /etc/os-release
   info "os: ${NAME:-unknown} ${VERSION_ID:-?} (id=${ID:-?})"
-  if [ "${ID:-}" = "ubuntu" ] && [ "${VERSION_ID:-}" = "24.04" ]; then
-    pass "Ubuntu Server 24.04 detected"
+  if [ "${ID:-}" = "ubuntu" ] && [ "${VERSION_ID:-}" = "26.04" ]; then
+    pass "Ubuntu Server 26.04 detected"
   elif [ "${ID:-}" = "ubuntu" ]; then
-    fail "Ubuntu ${VERSION_ID:-?} detected; ONLY clean 24.04 LTS is supported (see docs/UBUNTU_INSTALL.md)"
+    fail "Ubuntu ${VERSION_ID:-?} detected; ONLY clean 26.04 LTS is supported (see docs/UBUNTU_INSTALL.md)"
   else
-    fail "not Ubuntu (id=${ID:-?}); ONLY Ubuntu Server 24.04 is supported"
+    fail "not Ubuntu (id=${ID:-?}); ONLY Ubuntu Server 26.04 is supported"
   fi
 else
-  fail "/etc/os-release missing; cannot verify Ubuntu 24.04"
+  fail "/etc/os-release missing; cannot verify Ubuntu 26.04"
 fi
 info "kernel: $(uname -r)"
 ARCH="$(uname -m)"
@@ -299,7 +299,7 @@ fi
 
 section "16. Internet and DNS (read-only probes)"
 DNS_OK=0
-for h in registry.npmjs.org download.docker.com deb.nodesource.com dl.cloudsmith.io; do
+for h in registry.npmjs.org download.docker.com deb.nodesource.com dl.cloudsmith.io pkgs.tailscale.com; do
   if getent hosts "$h" >/dev/null 2>&1; then
     info "DNS ok: $h"
     DNS_OK=1
@@ -329,6 +329,25 @@ if [ -d "$REPO_DIR/.git" ]; then
   fi
 else
   warn "not a git checkout at $REPO_DIR (provenance unverifiable; set REPO_DIR= to override)"
+fi
+
+section "18. Tailscale (remote-admin plane, optional)"
+if have tailscale; then
+  info "client: $(tailscale version 2>/dev/null | head -n 1 || true)"
+  pass "tailscale client installed"
+  if systemctl is-active --quiet tailscaled 2>/dev/null; then
+    info "tailscaled service active"
+  else
+    warn "tailscaled service not active (join impossible until it runs)"
+  fi
+  if tailscale status >/dev/null 2>&1; then
+    pass "tailnet session active"
+    info "tailnet ip: $(tailscale ip -4 2>/dev/null | head -n 1 || true)"
+  else
+    warn "no active tailnet session (join manually when needed; see docs/TAILSCALE.md)"
+  fi
+else
+  warn "tailscale not installed (optional in MVP; Server OS works without it)"
 fi
 
 section "Summary"

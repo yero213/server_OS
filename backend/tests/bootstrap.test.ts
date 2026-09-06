@@ -22,12 +22,29 @@ function codeLines(content: string): string[] {
 const code = codeLines(bootstrap).join("\n");
 const codeLower = code.toLowerCase();
 
-test("bootstrap targets ONLY Ubuntu Server 24.04 x86_64 (Scenario A)", () => {
-  for (const needle of ['ID', 'VERSION_ID', '24.04', 'x86_64']) {
+test("bootstrap targets ONLY Ubuntu Server 26.04 x86_64 (Scenario A)", () => {
+  for (const needle of ['ID', 'VERSION_ID', '26.04', 'x86_64']) {
     assert.ok(bootstrap.includes(needle), `expected ${needle} gate in bootstrap`);
   }
   assert.ok(/uname\s+-m/.test(bootstrap), "expected uname -m arch gate");
   assert.ok(/Refusing/.test(bootstrap), "expected hard refusal on wrong platform");
+});
+
+test("bootstrap installs + enables Tailscale but never joins", () => {
+  assert.ok(
+    bootstrap.includes("https://pkgs.tailscale.com/stable/ubuntu/"),
+    "expected official Tailscale package server",
+  );
+  assert.ok(
+    code.includes("apt-get install -y tailscale"),
+    "expected tailscale package install",
+  );
+  assert.ok(
+    code.includes("enable --now tailscaled"),
+    "expected tailscaled service enabled",
+  );
+  assert.ok(!/\btailscale\s+up\b/.test(code), "bootstrap must never join the tailnet");
+  assert.ok(!/auth[^a-z]*key/i.test(code), "bootstrap must never ask for an auth key");
 });
 
 test("bootstrap installs Node 22, Docker and Caddy from official repos", () => {
@@ -60,6 +77,10 @@ test("bootstrap creates serveros user, units, firewall and deployments", () => {
   assert.ok(ufwControl.includes('allow_once "22/tcp"'), "expected SSH rule");
   assert.ok(ufwControl.includes('allow_once "80/tcp"'), "expected HTTP rule");
   assert.ok(ufwControl.includes('allow_once "443/tcp"'), "expected HTTPS rule");
+  assert.ok(
+    ufwControl.includes('allow_once "41641/udp"'),
+    "expected Tailscale direct-connection port (documented, narrow)",
+  );
   assert.ok(code.includes("/opt/server-os/backend-dist"), "expected /opt/server-os deploy");
   assert.ok(
     code.includes("/srv/serveros/frontend"),

@@ -3,11 +3,13 @@
 Read-only validation of the Dell Inspiron 3542 (control/application node)
 **before** `bootstrap-control.sh` is ever executed.
 
-Scenario A: the control node is a **clean minimal Ubuntu Server 24.04 LTS
+Scenario A: the control node is a **clean minimal Ubuntu Server 26.04 LTS
 (x86_64)** install. That is the ONLY supported MVP platform. Umbrel is NOT
 reinstalled and must NOT be present — on a clean install §14 reports
 “no umbrel remnants detected” (PASS). Any §14 WARN means the machine is
-not a clean install; resolve it before bootstrap. Full clean-install
+not a clean install; resolve it before bootstrap. Tailscale (§18) is
+WARN-only: absent/logged-out never blocks Server OS
+(see `docs/TAILSCALE.md`). Full clean-install
 guide: `docs/UBUNTU_INSTALL.md`.
 
 ## Run (on the laptop, from the repo root, no sudo required)
@@ -32,7 +34,7 @@ bash installer/preflight-control.sh | tee /tmp/preflight.txt
 | § | Check (tools used) | PASS | WARN | FAIL |
 |---|---|---|---|---|
 | 0 | Audit mode (`id`) | — (info) | not root: reduced depth for blkid/ufw/socket owners | — |
-| 1 | OS Scenario A (`/etc/os-release`, `uname`, `hostname`) | Ubuntu Server **24.04** + `x86_64` | — | no os-release, non-Ubuntu ID, Ubuntu ≠ 24.04, or arch ≠ x86_64 (bootstrap refuses) |
+| 1 | OS Scenario A (`/etc/os-release`, `uname`, `hostname`) | Ubuntu Server **26.04** + `x86_64` | — | no os-release, non-Ubuntu ID, Ubuntu ≠ 26.04, or arch ≠ x86_64 (bootstrap refuses) |
 | 2 | CPU/RAM (`nproc`, `/proc/cpuinfo`, `/proc/meminfo`) | RAM ≥ ~7 GB | below 7 GB (8 GB expected) | — |
 | 3 | Free space (`df -B1 /`) | ≥ 5 GB free | 2–5 GB (tight for images) | < 2 GB, do not bootstrap |
 | 4 | Attachments (`findmnt`, fallback `/proc/mounts`) | table readable | findmnt missing, fallback used | — |
@@ -47,8 +49,9 @@ bash installer/preflight-control.sh | tee /tmp/preflight.txt
 | 13 | Conflicting processes (`pgrep -a -f 'apache2\|nginx\|traefik\|lighttpd'`) | none found | foreign web server printed (owns 80/443?) | — |
 | 14 | Umbrel remnants (paths `/opt/umbrel`, `~/umbrel`, `/srv/umbrel`, `/home/*/umbrel`; `docker ps -a` name/image match; `list-units 'umbrel*'`) | none detected | any path/container/unit printed — resolve before bootstrap | — |
 | 15 | Hostname/mDNS (`hostname`, `hostnamectl`, `systemctl is-active avahi-daemon`, `getent hosts <hn>.local`) | avahi active + `<hn>.local` resolves | avahi down or `.local` unresolvable | — |
-| 16 | Internet/DNS read-only (`getent hosts` on the 4 bootstrap registries; TCP 443 connect to 1.1.0.1 with 5 s timeout, no payload) | egress ok | DNS/TCP failure (downloads would fail) | — |
+| 16 | Internet/DNS read-only (`getent hosts` on the 5 bootstrap registries incl. `pkgs.tailscale.com`; TCP 443 connect to 1.1.0.1 with 5 s timeout, no payload) | egress ok | DNS/TCP failure (downloads would fail) | — |
 | 17 | Repo state (`git rev-parse`, `git status --porcelain` in `$REPO_DIR`, default `/opt/server-os`) | clean checkout | dirty / not a checkout (provenance unverifiable) | — |
+| 18 | Tailscale (`tailscale version/status/ip -4`, `systemctl is-active tailscaled`) | client installed + session active (tailnet IP shown) | not installed / service down / logged out — informational only, never blocks bootstrap | — |
 
 ## Guarantees
 

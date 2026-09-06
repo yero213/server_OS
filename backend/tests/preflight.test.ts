@@ -104,6 +104,9 @@ const REQUIRED_PROBES = [
   "pgrep",
   "node --version",
   "caddy version",
+  "tailscale status",
+  "tailscaled",
+  "tailscale ip",
 ];
 
 test("preflight covers all required read-only probes", () => {

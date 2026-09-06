@@ -2,11 +2,12 @@
 
 ## Target (Scenario A, ONLY supported MVP platform)
 
-Laptop (control node), clean minimal Ubuntu Server 24.04 LTS x86_64
+Laptop (control node), clean minimal Ubuntu Server 26.04 LTS x86_64
 (Dell Inspiron 3542). No other OS/version/arch is supported for the MVP.
-Umbrel is NOT reinstalled. Clean-install guide: `docs/UBUNTU_INSTALL.md`.
+Umbrel is NOT reinstalled. Clean-install guide: `docs/UBUNTU_INSTALL.md`
+(includes the Tailscale remote-admin plane: `docs/TAILSCALE.md`).
 
-`bootstrap-control.sh` refuses to run on anything but Ubuntu 24.04 x86_64.
+`bootstrap-control.sh` refuses to run on anything but Ubuntu 26.04 x86_64.
 
 ## Install (on the laptop, as a sudo-capable user, AFTER preflight is clean)
 

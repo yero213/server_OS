@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Server OS — Phase 1 control-node bootstrap (Scenario A).
 # Idempotent: safe to re-run; existing config is never destroyed.
-# ONLY supported target: clean minimal Ubuntu Server 24.04 LTS, x86_64
+# ONLY supported target: clean minimal Ubuntu Server 26.04 LTS, x86_64
 # (Dell Inspiron 3542 Control/Application Node). Must run as root.
 # Umbrel is NOT installed by this script and is NOT supported for the MVP.
 #
-# Scope: users, dirs, Node 22, Docker Engine, Caddy, systemd units,
-# firewall, frontend deploy. No App Store, no Immich, no remote mounts.
+# Scope: users, dirs, Node 22, Docker Engine, Caddy, Tailscale (installed
+# + enabled ONLY, never joined), systemd units, firewall, frontend deploy.
+# No App Store, no Immich, no remote mounts.
 # Data-disk policy: this script never touches raw disks (see DATA_SAFETY.md).
+# Tailscale policy: install + enable only; joining the tailnet is ALWAYS a
+# manual admin step afterwards (see docs/TAILSCALE.md). Server OS keeps
+# working fully when Tailscale is absent or offline.
 set -euo pipefail
 
 REPO_DIR="${REPO_DIR:-/opt/server-os}"
@@ -23,15 +27,15 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 if [ ! -f /etc/os-release ]; then
-  echo "Refusing: /etc/os-release missing (not Ubuntu Server 24.04?)" >&2
+  echo "Refusing: /etc/os-release missing (not Ubuntu Server 26.04?)" >&2
   exit 1
 fi
-# Scenario A gate: ONLY Ubuntu Server 24.04 LTS is supported for the MVP.
+# Scenario A gate: ONLY Ubuntu Server 26.04 LTS is supported for the MVP.
 # shellcheck disable=SC1091
 . /etc/os-release
 log "OS: ${PRETTY_NAME:-unknown} (id=${ID:-?} version=${VERSION_ID:-?} arch=$(uname -m))"
-if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_ID:-}" != "24.04" ]; then
-  echo "Refusing: ONLY clean Ubuntu Server 24.04 LTS (x86_64) is supported." >&2
+if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_ID:-}" != "26.04" ]; then
+  echo "Refusing: ONLY clean Ubuntu Server 26.04 LTS (x86_64) is supported." >&2
   echo "Detected: id=${ID:-?} version=${VERSION_ID:-?}. See docs/UBUNTU_INSTALL.md." >&2
   exit 1
 fi
@@ -45,7 +49,7 @@ if command -v dpkg >/dev/null 2>&1; then
     exit 1
   fi
 fi
-log "Platform gate passed: Ubuntu Server 24.04 LTS x86_64"
+log "Platform gate passed: Ubuntu Server 26.04 LTS x86_64"
 
 # 1. Service user (idempotent).
 if id -u "$SERVICE_USER" >/dev/null 2>&1; then
@@ -83,7 +87,7 @@ else
 fi
 
 # 4. Docker Engine via official Docker apt repo (skip when present).
-# Uses download.docker.com for Ubuntu ($VERSION_CODENAME=noble on 24.04).
+# Uses download.docker.com for Ubuntu ($VERSION_CODENAME=resolute on 26.04).
 # Installs the engine + compose plugin ONLY; no app containers are deployed.
 if have docker; then
   log "docker present ($(docker --version 2>/dev/null || echo unknown)), skipping repo setup"
@@ -107,7 +111,7 @@ usermod -aG docker "$SERVICE_USER" || true
 # 5. Caddy via official Cloudsmith repo (skip when present).
 # NOTE: the filenames/keys below containing "debian" are Caddy upstream
 # naming (per Caddy docs for Ubuntu) — NOT a Debian-OS assumption.
-# Target remains Ubuntu Server 24.04 (noble) only.
+# Target remains Ubuntu Server 26.04 (resolute) only.
 if have caddy; then
   log "caddy present, skipping repo setup"
 else
@@ -122,7 +126,30 @@ else
   apt-get install -y caddy
 fi
 
-# 6. Backend build + install (expects this repo at REPO_DIR).
+# 6. Tailscale via official package server (skip when present).
+# Remote-admin plane for off-LAN SSH/access. Install + enable ONLY:
+# this script NEVER joins the tailnet (no join command, no auth key),
+# so unattended runs stay non-interactive. The admin joins manually
+# afterwards (see docs/TAILSCALE.md). Server OS works fully with
+# Tailscale absent or offline; LAN behaviour is unchanged.
+if have tailscale; then
+  log "tailscale present ($(tailscale version 2>/dev/null | head -n 1 || echo unknown)), skipping repo setup"
+else
+  log "installing Tailscale (official package server)"
+  apt-get update
+  apt-get install -y ca-certificates curl gnupg
+  install -m 0755 -d /usr/share/keyrings
+  TS_CODENAME="$(grep -E '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2)"
+  curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${TS_CODENAME}.noarmor.gpg" \
+    -o /usr/share/keyrings/tailscale-archive-keyring.gpg
+  curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${TS_CODENAME}.tailscale-keyring.list" \
+    > /etc/apt/sources.list.d/tailscale.list
+  apt-get update
+  apt-get install -y tailscale
+fi
+systemctl enable --now tailscaled
+
+# 7. Backend build + install (expects this repo at REPO_DIR).
 # Full install (not --omit=dev): the build needs devDependencies
 # (typescript); runtime uses dist/ only, the extra packages stay inert.
 if [ ! -f "$REPO_DIR/backend/package.json" ]; then
@@ -139,7 +166,7 @@ cp "$REPO_DIR/backend/package.json" /opt/server-os/backend-package.json
 chown -R "root:$SERVICE_USER" /opt/server-os
 chmod -R 0750 /opt/server-os
 
-# 7. Frontend static deploy.
+# 8. Frontend static deploy.
 log "deploying frontend to $FRONTEND_DIR"
 cd "$REPO_DIR/frontend"
 npm install
@@ -152,7 +179,7 @@ rm -rf "$FRONTEND_DIR.old"
 [ -d "$FRONTEND_DIR" ] && mv "$FRONTEND_DIR" "$FRONTEND_DIR.old" || true
 mv "$FRONTEND_DIR.new" "$FRONTEND_DIR"
 
-# 8. systemd units (from repo, daemon-reload, enable --now).
+# 9. systemd units (from repo, daemon-reload, enable --now).
 log "installing systemd units"
 cp "$REPO_DIR/installer/systemd/serveros-api.service" /etc/systemd/system/
 cp "$REPO_DIR/installer/systemd/serveros-helper.service" /etc/systemd/system/
@@ -160,14 +187,14 @@ systemctl daemon-reload
 systemctl enable --now serveros-helper.service
 systemctl enable --now serveros-api.service
 
-# 9. Caddy reverse proxy (template → validate → reload).
+# 10. Caddy reverse proxy (template → validate → reload).
 log "configuring Caddy"
 cp "$REPO_DIR/installer/caddy/Caddyfile.tmpl" /etc/caddy/Caddyfile
 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 systemctl enable --now caddy
 systemctl reload caddy || systemctl restart caddy
 
-# 10. Firewall (separate script, idempotent).
+# 11. Firewall (separate script, idempotent).
 if ! have ufw; then
   log "installing ufw (missing on minimal images)"
   apt-get update

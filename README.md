@@ -1,10 +1,12 @@
 # Server OS — Phase 1 / Bootstrap (v0.1.0)
 
 Custom home-server platform on minimal Ubuntu Server.
-Scenario A (MVP): clean Ubuntu Server 24.04 LTS minimal, x86_64 on the
+Scenario A (MVP): clean Ubuntu Server 26.04 LTS minimal, x86_64 on the
 Dell Inspiron 3542 Control/Application Node. This is the ONLY supported
 control-node platform for the MVP. Umbrel is NOT reinstalled.
 Single control node (laptop) + headless data node (desktop, NFS later).
+Tailscale is a supported remote-admin plane on both nodes
+(see `docs/TAILSCALE.md`); LAN functionality never depends on it.
 
 **Phase 1 scope:** API foundation, read-only storage discovery, static
 dashboard, Caddy reverse proxy, systemd units, idempotent installer.
@@ -19,7 +21,7 @@ server-os/
 ├── packages/contracts/  # Shared Zod schemas, permissions, storage kinds
 ├── manifests/           # App Store manifests (Phase 1: placeholder only, no Immich)
 ├── installer/           # Idempotent Ubuntu bootstrap (NOT for blind use, read DATA_SAFETY.md)
-├── docs/                # Phase docs, Caddy CA trust, NFS safety pointer
+├── docs/                # Phase docs, Caddy CA trust, NFS safety, Tailscale plane
 └── README.md
 ```
 
@@ -52,7 +54,7 @@ Frontend build (static, `frontend/build/`):
 & "$env:ProgramFiles\nodejs\npm.cmd" --workspace frontend run build
 ```
 
-## Production install (clean Ubuntu Server 24.04 LTS, on the laptop ONLY)
+## Production install (clean Ubuntu Server 26.04 LTS, on the laptop ONLY)
 
 Clean-install guide: `docs/UBUNTU_INSTALL.md` (read FIRST).
 

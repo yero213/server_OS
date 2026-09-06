@@ -23,6 +23,12 @@ in D-state, kills mid-upload). Instead: mark affected apps `degraded`,
 block new starts, surface a banner, offer manual Stop + Retry-mount.
 Running writers get loud `EIO` in logs — visible, never silent.
 
+## Transport scope (MVP)
+
+NFS is the LAN-only data plane between control node and data node.
+Tailscale is the remote-admin/management plane and is NEVER a transport
+for NFS mounts in the MVP (see `docs/TAILSCALE.md` §6).
+
 ## Proof gate
 
 `tests/chaos/nfs-fail.sh` (VM-only, Phase 9): kill NFS → assert gate
