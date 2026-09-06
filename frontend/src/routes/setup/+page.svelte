@@ -56,7 +56,7 @@ async function submit() {
 }
 </script>
 
-<main>
+<main class="narrow">
   <header class="top">
     <div class="logo">▦</div>
     <div>
