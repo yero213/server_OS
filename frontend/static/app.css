@@ -52,3 +52,25 @@ h1 { font-size: 22px; margin: 0; }
 footer { color: var(--muted); font-size: 12px; margin-top: 22px; }
 code { background: #0e1420; padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
 @media (max-width: 560px) { main { padding: 18px 12px 40px; } }
+/* Phase 2 auth: session pill + forms (same palette, no new deps). */
+.session { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.session a { color: var(--accent); }
+.badge.ok { color: var(--ok); }
+.linkbtn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--muted); font-size: 14px; text-decoration: underline;
+}
+.form-card { max-width: 460px; }
+.form-card label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+.form-card input {
+  width: 100%; padding: 9px 12px; border-radius: 8px; font-size: 15px;
+  background: #0e1420; border: 1px solid #2a3a55; color: var(--text);
+}
+.form-card input:focus { outline: none; border-color: var(--accent); }
+.form-card button {
+  margin-top: 16px; padding: 10px 22px; border-radius: 8px; font-size: 15px;
+  background: var(--accent); border: none; color: #06231d; font-weight: 650; cursor: pointer;
+}
+.form-card button:disabled { opacity: 0.6; cursor: default; }
+.form-card a { color: var(--accent); }
+.form-card .error { margin-top: 12px; }

@@ -1,9 +1,11 @@
 <script>
 import { onMount } from "svelte";
+import { getMe, postLogout } from "$lib/auth";
 
 let health = null;
 let sysinfo = null;
 let disks = null;
+let me = null;
 let error = "";
 let loading = true;
 
@@ -27,6 +29,13 @@ onMount(async () => {
     ]);
     health = h;
     sysinfo = s;
+    getMe()
+      .then((m) => {
+        me = m.authenticated ? m.user : null;
+      })
+      .catch(() => {
+        me = null;
+      });
     if (h?.storage?.supported) {
       disks = await fetch("/api/v1/storage/disks")
         .then((r) => (r.ok ? r.json() : null))
@@ -38,6 +47,11 @@ onMount(async () => {
     loading = false;
   }
 });
+
+async function logout() {
+  await postLogout();
+  me = null;
+}
 </script>
 
 <main>
@@ -46,6 +60,15 @@ onMount(async () => {
     <div>
       <h1>Server OS</h1>
       <div class="sub">Home-server control center <span class="badge">Phase 1 / Bootstrap</span></div>
+    </div>
+    <div class="session">
+      {#if me}
+        <span class="badge ok">✓ {me.username} ({me.role})</span>
+        <button class="linkbtn" on:click={logout}>Log out</button>
+      {:else}
+        <span class="badge">guest</span>
+        <a href="/login">Log in</a>
+      {/if}
     </div>
   </header>
 
