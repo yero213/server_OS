@@ -31,14 +31,18 @@ function loadInitSql(): string {
     new URL("../../drizzle/0001_init.sql", import.meta.url),
     new URL("../drizzle/0001_init.sql", import.meta.url),
   ];
+  let lastErr: unknown = null;
   for (const url of candidates) {
     try {
       return readFileSync(url, "utf8");
-    } catch {
-      /* try next candidate */
+    } catch (err) {
+      // Remember, don't swallow: EACCES (unreadable dir) must not
+      // masquerade as a missing file (cost us a real incident).
+      lastErr = err;
     }
   }
-  throw new Error("drizzle/0001_init.sql not found");
+  const detail = lastErr instanceof Error ? lastErr.message : String(lastErr);
+  throw new Error(`drizzle/0001_init.sql not found (${detail})`);
 }
 
 /** Idempotent SQLite initialisation (WAL, 0700 dir). No destructive ops. */

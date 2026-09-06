@@ -111,6 +111,17 @@ test("bootstrap ships backend bundle completely and keeps checkout usable", () =
     code.includes("backend/drizzle") && code.includes("/opt/server-os/drizzle"),
     "expected drizzle migrations deployed as sibling of backend-dist",
   );
+  // EACCES on an unreadable dir surfaced as "not found" on the Dell:
+  // the service user must traverse the drizzle dir, and stale 0750
+  // checkout dirs (invisible to git) must be repaired.
+  assert.ok(
+    code.includes('chown -R "root:$SERVICE_USER" /opt/server-os/backend-dist /opt/server-os/backend-package.json /opt/server-os/drizzle'),
+    "expected drizzle dir owned traversable by service user",
+  );
+  assert.ok(
+    code.includes('find "$REPO_DIR" -type d'),
+    "expected checkout dir-mode repair",
+  );
   // Deploy dir is rebuilt from scratch: plain cp -r would nest dist/ on re-run.
   assert.ok(
     code.includes("rm -rf /opt/server-os/backend-dist"),

@@ -155,8 +155,10 @@ curl -k https://server.local/api/v1/health
 What bootstrap changes (outside the repo): APT sources for NodeSource,
 Docker, Caddy, Tailscale; packages `nodejs`, `docker-ce*`, `caddy`,
 `tailscale`, `ufw`; user `serveros` (+`docker` group);
-`/opt/server-os/backend-dist`, `/var/lib/serveros`,
-`/srv/serveros/frontend`; units `serveros-api` + `serveros-helper` and
+`/opt/server-os/backend-dist`, `/opt/server-os/drizzle` (schema
+migrations, sibling of backend-dist), `/var/lib/serveros`,
+`/srv/serveros/frontend`; checkout itself stays world-readable (0755);
+units `serveros-api` + `serveros-helper` and
 `tailscaled` (enable --now); `/etc/caddy/Caddyfile` (overwritten — empty
 on clean install, otherwise back up); UFW `allow 22,80,443/tcp` +
 `allow 41641/udp` (Tailscale direct connections, documented in

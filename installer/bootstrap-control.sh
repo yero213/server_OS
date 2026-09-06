@@ -173,11 +173,16 @@ cp -r "$REPO_DIR/backend/drizzle" /opt/server-os/drizzle
 cp "$REPO_DIR/backend/package.json" /opt/server-os/backend-package.json
 # Artifact-scoped ownership ONLY: never chown/chmod the repo checkout
 # itself (REPO_DIR may equal /opt/server-os; the checkout must stay
-# usable for non-root preflight/git).
-chown -R "root:$SERVICE_USER" /opt/server-os/backend-dist /opt/server-os/backend-package.json
-chmod -R 0750 /opt/server-os/backend-dist /opt/server-os/backend-package.json
+# usable for non-root preflight/git). The service user MUST traverse
+# backend-dist AND drizzle alike: an unreadable dir fails reads with
+# EACCES, which db.js reports as "not found".
+chown -R "root:$SERVICE_USER" /opt/server-os/backend-dist /opt/server-os/backend-package.json /opt/server-os/drizzle
+chmod -R 0750 /opt/server-os/backend-dist /opt/server-os/backend-package.json /opt/server-os/drizzle
 # The checkout stays world-traversable/readable (public code, no secrets).
+# Repair dir modes too: an earlier bootstrap revision left checkout dirs
+# at 0750, which git does not even show (it only tracks the x-bit).
 chmod 0755 "$REPO_DIR"
+find "$REPO_DIR" -type d ! -perm 0755 -exec chmod 0755 {} +
 
 # 8. Frontend static deploy.
 log "deploying frontend to $FRONTEND_DIR"
