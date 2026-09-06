@@ -3,6 +3,10 @@ node_modules/
 frontend/build/
 backend/dist/
 backend/data/
+# Bootstrap deploy artifacts (only exist when REPO_DIR == /opt/server-os).
+/backend-dist/
+/backend-package.json
+/drizzle/
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal

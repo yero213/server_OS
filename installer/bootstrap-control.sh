@@ -161,10 +161,23 @@ cd "$REPO_DIR"
 npm install
 npm run build --workspace @serveros/backend
 mkdir -p /opt/server-os
+# Fresh deploy dir (rm first: plain cp -r would nest dist/ on re-run).
+rm -rf /opt/server-os/backend-dist
 cp -r "$REPO_DIR/backend/dist" /opt/server-os/backend-dist
+# Schema migrations MUST ship with the bundle as a SIBLING of backend-dist:
+# dist/db.js resolves ../drizzle/0001_init.sql, i.e. one level UP from
+# backend-dist (see backend/src/db.ts; same layout the checkout uses).
+# Whole dir (not one file) so later migrations deploy automatically.
+rm -rf /opt/server-os/drizzle
+cp -r "$REPO_DIR/backend/drizzle" /opt/server-os/drizzle
 cp "$REPO_DIR/backend/package.json" /opt/server-os/backend-package.json
-chown -R "root:$SERVICE_USER" /opt/server-os
-chmod -R 0750 /opt/server-os
+# Artifact-scoped ownership ONLY: never chown/chmod the repo checkout
+# itself (REPO_DIR may equal /opt/server-os; the checkout must stay
+# usable for non-root preflight/git).
+chown -R "root:$SERVICE_USER" /opt/server-os/backend-dist /opt/server-os/backend-package.json
+chmod -R 0750 /opt/server-os/backend-dist /opt/server-os/backend-package.json
+# The checkout stays world-traversable/readable (public code, no secrets).
+chmod 0755 "$REPO_DIR"
 
 # 8. Frontend static deploy.
 log "deploying frontend to $FRONTEND_DIR"

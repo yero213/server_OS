@@ -102,6 +102,42 @@ test("bootstrap creates serveros user, units, firewall and deployments", () => {
   }
 });
 
+test("bootstrap ships backend bundle completely and keeps checkout usable", () => {
+  // Regression test for the Dell crash (exit 1, restart loop):
+  // dist/db.js resolves ../drizzle/0001_init.sql, i.e. one level UP from
+  // backend-dist, so the migrations dir must be deployed as its SIBLING
+  // /opt/server-os/drizzle (whole dir, future-proof).
+  assert.ok(
+    code.includes("backend/drizzle") && code.includes("/opt/server-os/drizzle"),
+    "expected drizzle migrations deployed as sibling of backend-dist",
+  );
+  // Deploy dir is rebuilt from scratch: plain cp -r would nest dist/ on re-run.
+  assert.ok(
+    code.includes("rm -rf /opt/server-os/backend-dist"),
+    "expected fresh backend-dist on every run (idempotent deploy)",
+  );
+  // Ownership must be artifact-scoped: a broad chown/chmod of /opt/server-os
+  // locks the user out of their own checkout (REPO_DIR may equal it).
+  const lines = code.split("\n").map((line) => line.trim());
+  assert.ok(
+    !lines.includes('chown -R "root:$SERVICE_USER" /opt/server-os'),
+    "deploy ownership must be artifact-scoped, never whole /opt/server-os",
+  );
+  assert.ok(
+    !lines.includes("chmod -R 0750 /opt/server-os"),
+    "deploy permissions must be artifact-scoped, never whole /opt/server-os",
+  );
+  assert.ok(
+    code.includes('chmod 0755 "$REPO_DIR"'),
+    "expected checkout kept traversable for non-root preflight/git",
+  );
+  // Deploy artifacts live inside the checkout dir on the Dell layout and
+  // must not dirty git status (§17 repo-clean check).
+  const gitignore = readFileSync(join(here, "..", "..", ".gitignore"), "utf8");
+  assert.ok(gitignore.includes("backend-dist"), "expected backend-dist ignored");
+  assert.ok(gitignore.includes("backend-package.json"), "expected backend-package.json ignored");
+});
+
 test("bootstrap never touches disks, NFS, Immich or app containers", () => {
   const forbidden = [
     "mkfs",
